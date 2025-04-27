@@ -2,8 +2,6 @@ const API_URL = 'https://apicadastrarusu-rioprotegido-production.up.railway.app'
 
 const userForm = document.getElementById('userForm');
 const loginForm = document.getElementById('loginForm');
-const listarUsuariosBtn = document.getElementById('listarUsuarios');
-const listaUsuarios = document.getElementById('listaUsuarios');
 
 // Cadastro de usuário
 userForm.addEventListener('submit', async (e) => {
@@ -25,7 +23,7 @@ userForm.addEventListener('submit', async (e) => {
     const data = await response.json();
 
     if (response.ok) {
-      alert('Usuário cadastrado com sucesso!');
+      alert('Usuário cadastrado com sucesso! Agora faça o login.');
       userForm.reset();
     } else {
       alert(`Erro: ${data.erro}`);
@@ -56,51 +54,13 @@ loginForm.addEventListener('submit', async (e) => {
 
     if (response.ok) {
       localStorage.setItem('token', data.token);
-      alert('Login realizado com sucesso!');
-      loginForm.reset();
+      localStorage.setItem('email', email); // 👉 salvar email também
+      window.location.href = 'home.html'; // 👉 vai para a HOME!
     } else {
       alert(`Erro: ${data.mensagem}`);
     }
   } catch (error) {
     alert('Erro ao fazer login');
-    console.error(error);
-  }
-});
-
-// Listar usuários
-listarUsuariosBtn.addEventListener('click', async () => {
-  listaUsuarios.innerHTML = '';
-
-  const token = localStorage.getItem('token');
-
-  if (!token) {
-    alert('Você precisa estar logado para listar os usuários!');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}/usuarios`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.mensagem || 'Erro desconhecido');
-    }
-
-    const usuarios = await response.json();
-
-    usuarios.forEach(usuario => {
-      const li = document.createElement('li');
-      li.textContent = `Nome: ${usuario.nome} | Email: ${usuario.email}`;
-      listaUsuarios.appendChild(li);
-    });
-
-  } catch (error) {
-    alert(`Erro ao listar usuários: ${error.message}`);
     console.error(error);
   }
 });
