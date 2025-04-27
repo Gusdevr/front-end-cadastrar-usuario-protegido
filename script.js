@@ -1,10 +1,11 @@
-const API_URL = 'https://apicadastrarusu-rioprotegido-production.up.railway.app'; // sua API Railway!
+const API_URL = 'https://apicadastrarusu-rioprotegido-production.up.railway.app';
 
 const userForm = document.getElementById('userForm');
+const loginForm = document.getElementById('loginForm');
 const listarUsuariosBtn = document.getElementById('listarUsuarios');
 const listaUsuarios = document.getElementById('listaUsuarios');
 
-// Cadastrar usuário
+// Cadastro de usuário
 userForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -35,12 +36,61 @@ userForm.addEventListener('submit', async (e) => {
   }
 });
 
-// Listar usuários
-listarUsuariosBtn.addEventListener('click', async () => {
-  listaUsuarios.innerHTML = ''; // limpa lista antes de listar de novo
+// Login de usuário
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById('emailLogin').value;
+  const senha = document.getElementById('senhaLogin').value;
 
   try {
-    const response = await fetch(`${API_URL}/usuarios`);
+    const response = await fetch(`${API_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, senha })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      localStorage.setItem('token', data.token);
+      alert('Login realizado com sucesso!');
+      loginForm.reset();
+    } else {
+      alert(`Erro: ${data.mensagem}`);
+    }
+  } catch (error) {
+    alert('Erro ao fazer login');
+    console.error(error);
+  }
+});
+
+// Listar usuários
+listarUsuariosBtn.addEventListener('click', async () => {
+  listaUsuarios.innerHTML = '';
+
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    alert('Você precisa estar logado para listar os usuários!');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/usuarios`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.mensagem || 'Erro desconhecido');
+    }
+
     const usuarios = await response.json();
 
     usuarios.forEach(usuario => {
@@ -50,7 +100,7 @@ listarUsuariosBtn.addEventListener('click', async () => {
     });
 
   } catch (error) {
-    alert('Erro ao listar usuários');
+    alert(`Erro ao listar usuários: ${error.message}`);
     console.error(error);
   }
 });
